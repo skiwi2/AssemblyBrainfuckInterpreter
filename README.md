@@ -26,7 +26,7 @@ And an `ilink32.cfg` file with the following contents:
 
 You can obtain an executable by executing the following commands:
 
-1. `nasm -f obj asm_io.asm`
+1. `nasm -f obj -d OBJ_TYPE asm_io.asm`
 2. `nasm -f obj bf-interpreter.asm`
 3. `bcc32 -c driver.c`
 4. `bcc32 bf-interpreter.obj asm_io.obj driver.obj`
