@@ -11,8 +11,9 @@ msg_bfprogram       db      "Enter your Brainfuck program (use Enter exclusively
 
 segment _BSS public align=4 class=BSS use32
 
-bf_program_size     resd 1
-bf_program          resd 1    
+max_bf_program_size     resd 1
+bf_program              resd 1    
+bf_program_size         resd 1
 
 group DGROUP _BSS _DATA
 
@@ -28,7 +29,7 @@ _asm_main:
     call    print_string
     
     call    read_int
-    mov     [bf_program_size], eax
+    mov     [max_bf_program_size], eax
     
     push    eax
     call    _malloc
@@ -40,7 +41,7 @@ _asm_main:
     mov     eax, msg_bfprogram
     call    print_string
     
-    mov     ecx, [bf_program_size]
+    mov     ecx, [max_bf_program_size]
     xor     edx, edx
     
 read_program_loop:
@@ -55,6 +56,7 @@ read_program_loop:
     loop    read_program_loop
     
 read_program_done:
+    mov     [bf_program_size], edx
     
     popa
     mov     eax, 0
