@@ -9,6 +9,7 @@ segment _DATA public align=4 class=DATA use32
 msg_memoryamount    db      "Enter how much memory (in bytes) does your Brainfuck program needs: ", 0
 msg_bfprogram       db      "Enter your Brainfuck program (use Enter exclusively to continue): ", 0
 
+error_outofmemory   db      "Fatal: The Operating System does not have enough memory available.", 0
 error_programsize   db      "Fatal: The given Brainfuck program exceeded the given memory size.", 0
 
 segment _BSS public align=4 class=BSS use32
@@ -36,6 +37,10 @@ _asm_main:
     push    eax
     call    _malloc
     add     esp, 4                      ; undo push
+    
+    test    eax, eax
+    jz      error_exit_outofmemory
+    
     mov     [bf_program], eax
     
     call    read_char                   ; consume newline
@@ -65,18 +70,25 @@ store_program_done:
     
     jmp     short normal_exit
     
-; TODO: add reasonable way to support multiple error messages
+error_exit_outofmemory:
+    mov     eax, error_outofmemory
+    call    print_string                ; TODO: this should really print to stderr
+    popa
+    mov     eax, -1
+    jmp     short exit
+    
 error_exit_programsize:
     mov     eax, error_programsize
     call    print_string                ; TODO: this should really print to stderr
     popa
-    mov     eax, -1
-    leave
-    ret
+    mov     eax, -2
+    jmp     short exit
     
 normal_exit:
     popa
     mov     eax, 0
+    
+exit:
     leave
     ret
     
