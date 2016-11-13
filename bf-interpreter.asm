@@ -1,8 +1,9 @@
 %include "asm_io.inc"
 
-extern _malloc
+extern _malloc, _calloc
 
-%define NEWLINE_CODE  10
+%define NEWLINE_CODE            10
+%define BF_MEMORY_CELL_AMOUNT   30000
 
 segment _DATA public align=4 class=DATA use32
 
@@ -15,8 +16,11 @@ error_programsize   db      "Fatal: The given Brainfuck program exceeded the giv
 segment _BSS public align=4 class=BSS use32
 
 max_bf_program_size     resd 1
+
 bf_program              resd 1    
 bf_program_size         resd 1
+
+bf_memory               resd 1
 
 group DGROUP _BSS _DATA
 
@@ -67,6 +71,18 @@ store_program_loop:
     
 store_program_done:
     mov     [bf_program_size], edx
+;
+; zero-initialize BF memory cells
+;
+    push    dword 1
+    push    BF_MEMORY_CELL_AMOUNT
+    call    _calloc
+    add     esp, 8
+    
+    test    eax, eax
+    jz      error_exit_outofmemory
+    
+    mov     [bf_memory], eax
     
     jmp     short normal_exit
     
