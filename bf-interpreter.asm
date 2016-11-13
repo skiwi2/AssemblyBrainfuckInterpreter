@@ -7,7 +7,7 @@ extern _malloc, _calloc
 
 segment _DATA public align=4 class=DATA use32
 
-msg_memoryamount        db      "Enter how much memory (in bytes) does your Brainfuck program needs: ", 0
+msg_memoryamount        db      "Enter how much memory (in bytes) your Brainfuck program needs: ", 0
 msg_bfprogram           db      "Enter your Brainfuck program (use Enter exclusively to continue): ", 0
 
 bfprogram_jump_table    times 43 dd bfprogram_invalidop, 
