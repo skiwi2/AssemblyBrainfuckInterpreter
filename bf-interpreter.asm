@@ -7,11 +7,28 @@ extern _malloc, _calloc
 
 segment _DATA public align=4 class=DATA use32
 
-msg_memoryamount    db      "Enter how much memory (in bytes) does your Brainfuck program needs: ", 0
-msg_bfprogram       db      "Enter your Brainfuck program (use Enter exclusively to continue): ", 0
+msg_memoryamount        db      "Enter how much memory (in bytes) does your Brainfuck program needs: ", 0
+msg_bfprogram           db      "Enter your Brainfuck program (use Enter exclusively to continue): ", 0
 
-error_outofmemory   db      "Fatal: The Operating System does not have enough memory available.", 0
-error_programsize   db      "Fatal: The given Brainfuck program exceeded the given memory size.", 0
+bfprogram_jump_table    times 43 dd bfprogram_invalidop, 
+                        dd bfprogram_memory_inc, 
+                        dd bfprogram_input, 
+                        dd bfprogram_memory_dec,
+                        dd bfprogram_output,
+                        times 13 dd bfprogram_invalidop,
+                        dd bfprogram_pointer_left,
+                        dd bfprogram_invalidop,
+                        dd bfprogram_pointer_right,
+                        times 28 dd bfprogram_invalidop,
+                        dd bfprogram_jump_past,
+                        dd bfprogram_invalidop,
+                        dd bfprogram_jump_back,
+                        times 34 dd bfprogram_invalidop,
+                        times 128 dd bfprogram_invalidop
+
+error_outofmemory       db      "Fatal: The Operating System does not have enough memory available.", 0
+error_programsize       db      "Fatal: The given Brainfuck program exceeded the given memory size.", 0
+error_invalidop         db      "Fatal: An unsupported Brainfuck operation was found.", 0
 
 segment _BSS public align=4 class=BSS use32
 
@@ -27,7 +44,7 @@ group DGROUP _BSS _DATA
 segment _TEXT public align=1 class=CODE use32
         global  _asm_main
 _asm_main:
-    enter   0,0                         ; setup routine
+    enter   0,0                             ; setup routine
     pusha
 ;
 ; store Brainfuck program from console input
@@ -40,14 +57,14 @@ _asm_main:
     
     push    eax
     call    _malloc
-    add     esp, 4                      ; undo push
+    add     esp, 4                          ; undo push
     
     test    eax, eax
     jz      error_exit_outofmemory
     
     mov     [bf_program], eax
     
-    call    read_char                   ; consume newline
+    call    read_char                       ; consume newline
     
     mov     eax, msg_bfprogram
     call    print_string
@@ -58,13 +75,14 @@ _asm_main:
 store_program_loop:
     call    read_char
     
-    cmp     eax, NEWLINE_CODE           ; stop reading on newline
+    cmp     eax, NEWLINE_CODE               ; stop reading on newline
     jz      short store_program_done
     
-    cmp     edx, ecx                    ; error if exceeded program size
-    jz      short error_exit_programsize
+    cmp     edx, ecx                        ; error if exceeded program size
+    jz      error_exit_programsize
     
-    mov     [bf_program + edx], eax
+    mov     esi, [bf_program]
+    mov     [esi + edx], al
     
     inc     edx
     jmp     short store_program_loop
@@ -83,21 +101,101 @@ store_program_done:
     jz      error_exit_outofmemory
     
     mov     [bf_memory], eax
+;
+; run the BF program
+;
+    mov     esi, eax                        ; memory segment address
+    mov     edi, [bf_program]               ; program address    
+    mov     edx, 0                          ; program pointer offset
+    mov     ecx, [bf_program_size]          ; actual program size
+    mov     ebx, 0                          ; current memory cell offset
     
-    jmp     short normal_exit
+run_program_loop:        
+    movzx   eax, byte [edi + edx]
+
+    jmp     [bfprogram_jump_table + 4*eax]  ; addresses are dword, ASCII is translated to byte offsets
+
+run_program_loop_end:
+    inc     edx
+    
+    cmp     edx, ecx
+    jz      short run_program_done
+    
+    jmp     short run_program_loop
+    
+run_program_done:
+    jmp     normal_exit
+    
+bfprogram_pointer_right:
+    inc     ebx
+    
+    jmp     run_program_loop_end
+    
+bfprogram_pointer_left:
+    dec     ebx
+    
+    jmp     run_program_loop_end
+    
+bfprogram_memory_inc:
+    mov     al, [esi + ebx]
+    inc     al
+    mov     [esi + ebx], al
+    
+    jmp     run_program_loop_end
+    
+bfprogram_memory_dec:
+    mov     al, [esi + ebx]
+    dec     al
+    mov     [esi + ebx], al
+    
+    jmp     run_program_loop_end
+    
+bfprogram_output:
+    mov     al, [esi + ebx]
+    
+    push    eax    
+    call    print_char
+    add     esp, 4
+    
+    jmp     run_program_loop_end
+    
+bfprogram_input:
+    call    read_char
+    
+    mov     [esi + ebx], al
+    
+    jmp     run_program_loop_end
+    
+bfprogram_jump_past:
+    nop
+    jmp     error_exit_invalidop
+    
+bfprogram_jump_back:
+    nop
+    jmp     error_exit_invalidop
+    
+bfprogram_invalidop:
+    jmp     error_exit_invalidop
     
 error_exit_outofmemory:
     mov     eax, error_outofmemory
-    call    print_string                ; TODO: this should really print to stderr
+    call    print_string                    ; TODO: this should really print to stderr
     popa
     mov     eax, -1
     jmp     short exit
     
 error_exit_programsize:
     mov     eax, error_programsize
-    call    print_string                ; TODO: this should really print to stderr
+    call    print_string                    ; TODO: this should really print to stderr
     popa
     mov     eax, -2
+    jmp     short exit
+    
+error_exit_invalidop:
+    mov     eax, error_invalidop
+    call    print_string                    ; TODO: this should really print to stderr
+    popa
+    mov     eax, -3
     jmp     short exit
     
 normal_exit:
