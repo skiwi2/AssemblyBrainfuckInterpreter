@@ -176,8 +176,7 @@ bfprogram_jump_past:
 ;
 ; find matching ]
 ;
-; TODO use another 32-bit register once it's available after planned refactoring
-    mov     ah, 1                          ; when counter reaches zero the ] is found where we need to jump past
+    mov     ebx, 1                          ; when counter reaches zero the ] is found where we need to jump past
     
 bfprogram_jump_past_loop:
     inc     edx
@@ -192,14 +191,14 @@ bfprogram_jump_past_loop:
     jmp     short bfprogram_jump_past_loop
     
 bfprogram_jump_past_loop_found_jump_past:
-    inc     ah
+    inc     ebx
     
     jmp     short bfprogram_jump_past_loop
     
 bfprogram_jump_past_loop_found_jump_back:
-    dec     ah
+    dec     ebx
     
-    test    ah, ah
+    test    ebx, ebx
     jz      run_program_loop_end            ; jumped over matching ]
     
     jmp     short bfprogram_jump_past_loop
@@ -212,8 +211,7 @@ bfprogram_jump_back:
 ;
 ; find matching [
 ;
-; TODO use another 32-bit register once it's available after planned refactoring
-    mov     ah, 1                           ; when counter reaches zero the [ is found where we need to jump back to
+    mov     ebx, 1                          ; when counter reaches zero the [ is found where we need to jump back to
     
 bfprogram_jump_back_loop:
     dec     edx
@@ -228,14 +226,14 @@ bfprogram_jump_back_loop:
     jmp     short bfprogram_jump_back_loop
     
 bfprogram_jump_back_loop_found_jump_back:
-    inc     ah
+    inc     ebx
     
     jmp     short bfprogram_jump_back_loop
     
 bfprogram_jump_back_loop_found_jump_past:
-    dec     ah
+    dec     ebx
     
-    test    ah, ah
+    test    ebx, ebx
     jz      run_program_loop_end            ; jumped back to matching [
     
     jmp     short bfprogram_jump_back_loop
