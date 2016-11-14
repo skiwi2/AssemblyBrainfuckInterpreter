@@ -64,7 +64,7 @@ _main:
     
     lea     eax, [ebp - 4]
     push    eax    
-    push    dword format_int
+    push    format_int
     call    _scanf
     add     esp, 8    
     mov     eax, [ebp - 4]
