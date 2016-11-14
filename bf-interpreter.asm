@@ -5,6 +5,9 @@ extern _malloc, _calloc
 %define NEWLINE_CODE            10
 %define BF_MEMORY_CELL_AMOUNT   30000
 
+%define JUMP_PAST_CODE          91
+%define JUMP_BACK_CODE          93
+
 segment _DATA public align=4 class=DATA use32
 
 msg_memoryamount        db      "Enter how much memory (in bytes) your Brainfuck program needs: ", 0
@@ -167,12 +170,76 @@ bfprogram_input:
     jmp     run_program_loop_end
     
 bfprogram_jump_past:
-    nop
-    jmp     error_exit_invalidop
+    mov     al, [esi + ebx]
+    
+    test    al, al                          ; check if memory cell is zero
+    jnz     run_program_loop_end            ; if not zero, move to next instruction
+;
+; find matching ]
+;
+; TODO use another 32-bit register once it's available after planned refactoring
+    mov     ah, 1                          ; when counter reaches zero the ] is found where we need to jump past
+    
+bfprogram_jump_past_loop:
+    inc     edx
+    mov     al, [edi + edx]
+    
+    cmp     al, JUMP_PAST_CODE
+    jz      short bfprogram_jump_past_loop_found_jump_past
+    
+    cmp     al, JUMP_BACK_CODE
+    jz      short bfprogram_jump_past_loop_found_jump_back
+    
+    jmp     short bfprogram_jump_past_loop
+    
+bfprogram_jump_past_loop_found_jump_past:
+    inc     ah
+    
+    jmp     short bfprogram_jump_past_loop
+    
+bfprogram_jump_past_loop_found_jump_back:
+    dec     ah
+    
+    test    ah, ah
+    jz      run_program_loop_end            ; jumped over matching ]
+    
+    jmp     short bfprogram_jump_past_loop
     
 bfprogram_jump_back:
-    nop
-    jmp     error_exit_invalidop
+    mov     al, [esi + ebx]
+    
+    test    al, al                          ; check if memory cell is zero
+    jz      run_program_loop_end            ; if zero, move to next instruction
+;
+; find matching [
+;
+; TODO use another 32-bit register once it's available after planned refactoring
+    mov     ah, 1                           ; when counter reaches zero the [ is found where we need to jump back to
+    
+bfprogram_jump_back_loop:
+    dec     edx
+    mov     al, [edi + edx]
+    
+    cmp     al, JUMP_BACK_CODE
+    jz      short bfprogram_jump_back_loop_found_jump_back
+    
+    cmp     al, JUMP_PAST_CODE
+    jz      short bfprogram_jump_back_loop_found_jump_past
+    
+    jmp     short bfprogram_jump_back_loop
+    
+bfprogram_jump_back_loop_found_jump_back:
+    inc     ah
+    
+    jmp     short bfprogram_jump_back_loop
+    
+bfprogram_jump_back_loop_found_jump_past:
+    dec     ah
+    
+    test    ah, ah
+    jz      run_program_loop_end            ; jumped back to matching [
+    
+    jmp     short bfprogram_jump_back_loop
     
 bfprogram_invalidop:
     jmp     error_exit_invalidop
