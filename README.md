@@ -24,7 +24,9 @@ And an `ilink32.cfg` file with the following contents:
 
 ### Creating the executable
 
-You can obtain an executable by executing the following commands:
+You can obtain the executable by executing the following commands:
 
-1. `nasm -f obj bf-interpreter-console.asm`
-3. `bcc32 bf-interpreter-console.obj`
+1. `nasm -f obj bf-interpreter.asm`
+2. `bcc32 bf-interpreter.obj`
+3. `nasm -f obj bf-interpreter-console.asm`
+4. `bcc32 bf-interpreter-console.obj`
