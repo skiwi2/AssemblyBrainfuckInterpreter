@@ -201,17 +201,9 @@ bfprogram_output:
 bfprogram_input:
     call    _getchar
     
-    cmp     al, NEWLINE_CODE                    ; check if newline has been entered
-    je      short bfprogram_input_newline
-    
     mov     [esi], al
     
     jmp     run_program_loop_end
-    
-bfprogram_input_newline:
-    dec     edi                                 ; set back program pointer
-    
-    jmp     run_program_loop_end                ; thus effectively ignore input
     
 bfprogram_jump_past:
     mov     al, [esi]
