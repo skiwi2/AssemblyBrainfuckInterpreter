@@ -4,7 +4,6 @@ extern _malloc, _calloc, _printf, _fdopen, _fprintf, _scanf, _getchar, _putchar,
 %define SEEK_END                2
 %define EOF                     -1    
 
-%define NEWLINE_CODE            10
 %define BF_MEMORY_CELL_AMOUNT   30000
 
 %define BF_PROGRAM_END          255
