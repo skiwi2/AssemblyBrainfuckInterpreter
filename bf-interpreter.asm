@@ -107,11 +107,10 @@ store_program_done:
 ;
 ; run the BF program
 ;
-    mov     esi, eax                        ; memory segment address
+    mov     esi, eax                        ; current memory address
     mov     edi, [bf_program]               ; program address    
     mov     edx, 0                          ; program pointer offset
     mov     ecx, [bf_program_size]          ; actual program size
-    mov     ebx, 0                          ; current memory cell offset
     
 run_program_loop:        
     movzx   eax, byte [edi + edx]
@@ -130,31 +129,31 @@ run_program_done:
     jmp     normal_exit
     
 bfprogram_pointer_right:
-    inc     ebx
+    inc     esi
     
     jmp     run_program_loop_end
     
 bfprogram_pointer_left:
-    dec     ebx
+    dec     esi
     
     jmp     run_program_loop_end
     
 bfprogram_memory_inc:
-    mov     al, [esi + ebx]
+    mov     al, [esi]
     inc     al
-    mov     [esi + ebx], al
+    mov     [esi], al
     
     jmp     run_program_loop_end
     
 bfprogram_memory_dec:
-    mov     al, [esi + ebx]
+    mov     al, [esi]
     dec     al
-    mov     [esi + ebx], al
+    mov     [esi], al
     
     jmp     run_program_loop_end
     
 bfprogram_output:
-    mov     al, [esi + ebx]
+    mov     al, [esi]
     
     push    eax                             ; safe to do because eax is 000000xxh before the prior mov
     call    print_char
@@ -165,12 +164,12 @@ bfprogram_output:
 bfprogram_input:
     call    read_char
     
-    mov     [esi + ebx], al
+    mov     [esi], al
     
     jmp     run_program_loop_end
     
 bfprogram_jump_past:
-    mov     al, [esi + ebx]
+    mov     al, [esi]
     
     test    al, al                          ; check if memory cell is zero
     jnz     run_program_loop_end            ; if not zero, move to next instruction
@@ -206,7 +205,7 @@ bfprogram_jump_past_loop_found_jump_back:
     jmp     short bfprogram_jump_past_loop
     
 bfprogram_jump_back:
-    mov     al, [esi + ebx]
+    mov     al, [esi]
     
     test    al, al                          ; check if memory cell is zero
     jz      run_program_loop_end            ; if zero, move to next instruction
