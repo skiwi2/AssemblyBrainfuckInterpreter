@@ -13,8 +13,6 @@ extern _malloc, _calloc, _printf, _fdopen, _fprintf, _scanf, _getchar, _putchar,
 
 segment _DATA public align=4 class=DATA use32
 
-format_int              db      "%d", 0
-
 write_mode              db      "w", 0
 read_mode               db      "r", 0
 
