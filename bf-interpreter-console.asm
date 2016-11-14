@@ -48,10 +48,9 @@ bf_memory               resd 1
 group DGROUP _BSS _DATA
 
 segment _TEXT public align=1 class=CODE use32
-        global  _asm_main
-_asm_main:
-    enter   0,0                                 ; setup routine
-    pusha
+        global  _main
+_main:
+    mov     ebp, esp                            ; save original stack pointer
 ;
 ; store Brainfuck program from console input
 ;    
@@ -256,7 +255,6 @@ error_exit_outofmemory:
     push    error_outofmemory
     call    _printf                             ; TODO: this should really print to stderr
     add     esp, 4
-    popa
     mov     eax, -1
     jmp     short exit
     
@@ -264,7 +262,6 @@ error_exit_programsize:
     push    error_programsize
     call    _printf                             ; TODO: this should really print to stderr
     add     esp, 4
-    popa
     mov     eax, -2
     jmp     short exit
     
@@ -272,15 +269,12 @@ error_exit_invalidop:
     push    error_invalidop
     call    _printf                             ; TODO: this should really print to stderr
     add     esp, 4
-    popa
     mov     eax, -3
     jmp     short exit
     
 normal_exit:
-    popa
     mov     eax, 0
     
 exit:
-    leave
     ret
     
