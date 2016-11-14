@@ -1,6 +1,4 @@
-%include "asm_io.inc"
-
-extern _malloc, _calloc
+extern _malloc, _calloc, _printf, _scanf, _getchar, _putchar
 
 %define NEWLINE_CODE            10
 %define BF_MEMORY_CELL_AMOUNT   30000
@@ -11,6 +9,8 @@ extern _malloc, _calloc
 %define JUMP_BACK_CODE          93
 
 segment _DATA public align=4 class=DATA use32
+
+format_int              db      "%d", 0
 
 msg_memoryamount        db      "Enter how much memory (in bytes) your Brainfuck program needs: ", 0
 msg_bfprogram           db      "Enter your Brainfuck program (use Enter exclusively to continue): ", 0
@@ -55,51 +55,59 @@ _asm_main:
 ;
 ; store Brainfuck program from console input
 ;    
-    mov     eax, msg_memoryamount
-    call    print_string
+    push    msg_memoryamount
+    call    _printf
+    add     esp, 4
     
-    call    read_int
+    lea     eax, [ebp - 4]
+    push    eax    
+    push    dword format_int
+    call    _scanf
+    add     esp, 8    
+    mov     eax, [ebp - 4]
+    
     mov     [max_bf_program_size], eax
     
     inc     eax                                 ; reserve one extra byte for the BF_PROGRAM_END code
     
     push    eax
     call    _malloc
-    add     esp, 4                              ; undo push
+    add     esp, 4
     
     test    eax, eax
     jz      error_exit_outofmemory
     
     mov     [bf_program], eax
     
-    call    read_char                           ; consume newline
+    call    _getchar                            ; consume newline
     
-    mov     eax, msg_bfprogram
-    call    print_string
+    push    msg_bfprogram
+    call    _printf
+    add     esp, 4
     
-    mov     ecx, [max_bf_program_size]
-    xor     edx, edx
+    mov     edi, [max_bf_program_size]
+    xor     ebx, ebx
     
     mov     esi, [bf_program]
     
 store_program_loop:
-    call    read_char
+    call    _getchar
     
     cmp     eax, NEWLINE_CODE                   ; stop reading on newline
     jz      short store_program_done
     
-    cmp     edx, ecx                            ; error if exceeded program size
+    cmp     ebx, edi                            ; error if exceeded program size
     jz      error_exit_programsize
     
-    mov     [esi + edx], al
+    mov     [esi + ebx], al
     
-    inc     edx
+    inc     ebx
     jmp     short store_program_loop
     
 store_program_done:
-    mov     [esi + edx], byte BF_PROGRAM_END    ; store program end special code
+    mov     [esi + ebx], byte BF_PROGRAM_END    ; store program end special code
 
-    mov     [bf_program_size], edx
+    mov     [bf_program_size], ebx
 ;
 ; zero-initialize BF memory cells
 ;
@@ -117,7 +125,6 @@ store_program_done:
 ;
     mov     esi, eax                            ; current memory address
     mov     edi, [bf_program]                   ; current program address    
-    mov     ecx, [bf_program_size]              ; actual program size
     
 run_program_loop:        
     movzx   eax, byte [edi]
@@ -160,13 +167,13 @@ bfprogram_output:
     mov     al, [esi]
     
     push    eax                                 ; safe to do because eax is 000000xxh before the prior mov
-    call    print_char
+    call    _putchar
     add     esp, 4
     
     jmp     run_program_loop_end
     
 bfprogram_input:
-    call    read_char
+    call    _getchar
     
     mov     [esi], al
     
@@ -246,22 +253,25 @@ bfprogram_invalidop:
     jmp     error_exit_invalidop
     
 error_exit_outofmemory:
-    mov     eax, error_outofmemory
-    call    print_string                        ; TODO: this should really print to stderr
+    push    error_outofmemory
+    call    _printf                             ; TODO: this should really print to stderr
+    add     esp, 4
     popa
     mov     eax, -1
     jmp     short exit
     
 error_exit_programsize:
-    mov     eax, error_programsize
-    call    print_string                        ; TODO: this should really print to stderr
+    push    error_programsize
+    call    _printf                             ; TODO: this should really print to stderr
+    add     esp, 4
     popa
     mov     eax, -2
     jmp     short exit
     
 error_exit_invalidop:
-    mov     eax, error_invalidop
-    call    print_string                        ; TODO: this should really print to stderr
+    push    error_invalidop
+    call    _printf                             ; TODO: this should really print to stderr
+    add     esp, 4
     popa
     mov     eax, -3
     jmp     short exit
