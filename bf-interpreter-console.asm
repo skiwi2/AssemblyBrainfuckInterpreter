@@ -1,4 +1,6 @@
-extern _malloc, _calloc, _printf, _scanf, _getchar, _putchar
+extern _malloc, _calloc, _printf, _fdopen, _fprintf, _scanf, _getchar, _putchar
+
+%define STDERR                  2
 
 %define NEWLINE_CODE            10
 %define BF_MEMORY_CELL_AMOUNT   30000
@@ -11,6 +13,8 @@ extern _malloc, _calloc, _printf, _scanf, _getchar, _putchar
 segment _DATA public align=4 class=DATA use32
 
 format_int              db      "%d", 0
+
+write_mode              db      "w", 0
 
 msg_memoryamount        db      "Enter how much memory (in bytes) your Brainfuck program needs: ", 0
 msg_bfprogram           db      "Enter your Brainfuck program (use Enter exclusively to continue): ", 0
@@ -252,24 +256,45 @@ bfprogram_invalidop:
     jmp     error_exit_invalidop
     
 error_exit_outofmemory:
+    push    write_mode
+    push    2
+    call    _fdopen
+    add     esp, 8
+
     push    error_outofmemory
-    call    _printf                             ; TODO: this should really print to stderr
-    add     esp, 4
+    push    eax
+    call    _fprintf
+    add     esp, 8
     mov     eax, -1
+    
     jmp     short exit
     
 error_exit_programsize:
+    push    write_mode
+    push    2
+    call    _fdopen
+    add     esp, 8
+
     push    error_programsize
-    call    _printf                             ; TODO: this should really print to stderr
-    add     esp, 4
+    push    eax
+    call    _fprintf
+    add     esp, 8
     mov     eax, -2
+    
     jmp     short exit
     
 error_exit_invalidop:
+    push    write_mode
+    push    2
+    call    _fdopen
+    add     esp, 8
+
     push    error_invalidop
-    call    _printf                             ; TODO: this should really print to stderr
-    add     esp, 4
+    push    eax
+    call    _fprintf
+    add     esp, 8
     mov     eax, -3
+    
     jmp     short exit
     
 normal_exit:
