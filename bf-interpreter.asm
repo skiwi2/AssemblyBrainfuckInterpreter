@@ -156,7 +156,7 @@ bfprogram_memory_dec:
 bfprogram_output:
     mov     al, [esi + ebx]
     
-    push    eax    
+    push    eax                             ; safe to do because eax is 000000xxh before the prior mov
     call    print_char
     add     esp, 4
     
