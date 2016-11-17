@@ -10,7 +10,7 @@ extern _malloc, _calloc, _printf, _fdopen, _fprintf, _scanf, _getchar, _putchar
 %define JUMP_PAST_CODE          91
 %define JUMP_BACK_CODE          93
 
-segment _DATA public align=4 class=DATA use32
+section .data
 
 format_int              db      "%d", 0
 
@@ -40,7 +40,7 @@ error_outofmemory       db      "Fatal: The Operating System does not have enoug
 error_programsize       db      "Fatal: The given Brainfuck program exceeded the given memory size.", 0
 error_invalidop         db      "Fatal: An unsupported Brainfuck operation was found.", 0
 
-segment _BSS public align=4 class=BSS use32
+section .bss
 
 max_bf_program_size     resd 1
 
@@ -49,9 +49,7 @@ bf_program_size         resd 1
 
 bf_memory               resd 1
 
-group DGROUP _BSS _DATA
-
-segment _TEXT public align=1 class=CODE use32
+section .text
         global  _main
 _main:
     mov     ebp, esp                            ; save original stack pointer

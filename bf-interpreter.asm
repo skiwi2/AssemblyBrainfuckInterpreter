@@ -11,7 +11,7 @@ extern _malloc, _calloc, _printf, _fdopen, _fprintf, _scanf, _getchar, _putchar,
 %define JUMP_PAST_CODE          91
 %define JUMP_BACK_CODE          93
 
-segment _DATA public align=4 class=DATA use32
+section .data
 
 write_mode              db      "w", 0
 read_mode               db      "r", 0
@@ -37,7 +37,7 @@ error_noargument        db      "Fatal: No argument was provided.", 0
 error_notexist          db      "Fatal: The file does not exist.", 0
 error_outofmemory       db      "Fatal: The Operating System does not have enough memory available.", 0
 
-segment _BSS public align=4 class=BSS use32
+section .bss
 
 file_name               resd 1
 
@@ -46,9 +46,7 @@ bf_program              resd 1
 
 bf_memory               resd 1
 
-group DGROUP _BSS _DATA
-
-segment _TEXT public align=1 class=CODE use32
+section .text
         global  _main
 _main:
     mov     ebp, esp                            ; save original stack pointer
