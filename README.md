@@ -9,9 +9,9 @@ This program is intended to run under Windows in 32-bit protected mode on a rece
 
 The program assumes you have NASM and MinGW's GCC Compiler installed. Both the `nasm` and `gcc` executables should be available on the classpath.
 
-### Creating the executable
+### Creating the executables
 
-You can obtain the executable by executing the following commands:
+You can obtain the `bf-interpreter.exe` and `bf-interpreter-console.exe` executables by executing the following commands:
 
 1. `nasm -f win32 bf-interpreter.asm`
 2. `gcc -o bf-interpreter bf-interpreter.obj`
