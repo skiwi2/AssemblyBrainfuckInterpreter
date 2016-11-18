@@ -1,4 +1,4 @@
-extern _malloc, _calloc, _printf, _fdopen, _fprintf, _scanf, _getchar, _putchar, _fopen, _fseek, _ftell, _rewind, _fgetc, _fclose
+extern _malloc, _calloc, _fdopen, _fprintf, _getchar, _putchar, _fopen, _fseek, _ftell, _rewind, _fgetc, _fclose
 
 %define STDERR                  2
 %define SEEK_END                2
